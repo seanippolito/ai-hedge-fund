@@ -10,7 +10,7 @@ from src.schwab.auth import get_valid_token
 from src.schwab.exceptions import SchwabAPIError, SchwabAuthError
 from src.schwab.models import Account, AccountNumber, Order, Position
 
-_BASE_URL = "https://api.schwabapis.com/trader/v1"
+_BASE_URL = "https://api.schwabapi.com/trader/v1"
 
 
 class SchwabClient:
