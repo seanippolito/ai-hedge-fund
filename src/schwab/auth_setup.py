@@ -18,8 +18,8 @@ from dotenv import load_dotenv
 from src.schwab.auth import save_tokens
 from src.schwab.exceptions import SchwabAuthError
 
-_AUTH_URL = "https://api.schwabapis.com/v1/oauth/authorize"
-_TOKEN_URL = "https://api.schwabapis.com/v1/oauth/token"
+_AUTH_URL = "https://api.schwabapi.com/v1/oauth/authorize"
+_TOKEN_URL = "https://api.schwabapi.com/v1/oauth/token"
 
 
 def run_auth_flow() -> None:
@@ -45,7 +45,7 @@ def run_auth_flow() -> None:
         "client_id": client_id,
         "redirect_uri": redirect_uri,
         "response_type": "code",
-        "scope": "readonly",
+        "scope": "api",
     }
     auth_url = f"{_AUTH_URL}?{urllib.parse.urlencode(params)}"
 

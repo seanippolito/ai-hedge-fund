@@ -55,7 +55,7 @@ def load_tokens(path: Path) -> dict:
     return data
 
 
-_TOKEN_URL = "https://api.schwabapis.com/v1/oauth/token"
+_TOKEN_URL = "https://api.schwabapi.com/v1/oauth/token"
 
 
 def _refresh_tokens(path: Path, refresh_token: str) -> dict:
