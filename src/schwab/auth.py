@@ -59,20 +59,32 @@ _TOKEN_URL = "https://api.schwabapis.com/v1/oauth/token"
 
 
 def _refresh_tokens(path: Path, refresh_token: str) -> dict:
-    client_id = os.environ["SCHWAB_CLIENT_ID"]
-    client_secret = os.environ["SCHWAB_CLIENT_SECRET"]
+    client_id = os.environ.get("SCHWAB_CLIENT_ID")
+    client_secret = os.environ.get("SCHWAB_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        raise SchwabAuthError(
+            "SCHWAB_CLIENT_ID and SCHWAB_CLIENT_SECRET must be set to refresh tokens."
+        )
 
-    response = requests.post(
-        _TOKEN_URL,
-        data={"grant_type": "refresh_token", "refresh_token": refresh_token},
-        auth=(client_id, client_secret),
-        timeout=30,
-    )
+    try:
+        response = requests.post(
+            _TOKEN_URL,
+            data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+            auth=(client_id, client_secret),
+            timeout=30,
+        )
+    except requests.exceptions.RequestException as exc:
+        raise SchwabAuthError(f"Token refresh request failed: {exc}") from exc
 
     if response.status_code != 200:
         raise SchwabAuthError(f"Token refresh failed with status {response.status_code}")
 
     data = response.json()
+    missing = {"access_token", "refresh_token", "expires_in"} - data.keys()
+    if missing:
+        raise SchwabAuthError(
+            f"Token refresh response missing fields: {sorted(missing)}"
+        )
     save_tokens(
         path,
         access_token=data["access_token"],
