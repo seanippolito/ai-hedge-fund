@@ -12,6 +12,7 @@ from src.schwab.exceptions import SchwabAuthError, SchwabAPIError, SchwabError
 from src.schwab.models import Account, AccountNumber, Order, Position
 
 
+
 def test_schwab_auth_error_is_exception():
     err = SchwabAuthError("token expired")
     assert isinstance(err, Exception)
@@ -92,12 +93,12 @@ def test_save_tokens_writes_json(tmp_path):
     assert data["expires_at"] == 9999.0
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="chmod not supported on Windows")
 def test_save_tokens_sets_restricted_permissions(tmp_path):
     token_file = tmp_path / "tokens.json"
     save_tokens(token_file, access_token="acc", refresh_token="ref", expires_at=9999.0)
-    if sys.platform != "win32":
-        mode = stat.S_IMODE(token_file.stat().st_mode)
-        assert mode == 0o600, f"Expected 0o600, got {oct(mode)}"
+    mode = stat.S_IMODE(token_file.stat().st_mode)
+    assert mode == 0o600, f"Expected 0o600, got {oct(mode)}"
 
 
 def test_load_tokens_reads_correctly(valid_token_file):
