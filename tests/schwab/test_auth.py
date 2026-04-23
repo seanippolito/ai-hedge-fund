@@ -1,6 +1,15 @@
+import json
+import stat
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+import pytest
+
+from src.schwab.auth import load_tokens, save_tokens
 from src.schwab.exceptions import SchwabAuthError, SchwabAPIError, SchwabError
 from src.schwab.models import Account, AccountNumber, Order, Position
-from datetime import datetime, timezone
 
 
 def test_schwab_auth_error_is_exception():
@@ -72,3 +81,33 @@ def test_order_model_optional_limit_price():
     )
     assert order.limit_price is None
     assert order.order_type == "MARKET"
+
+
+def test_save_tokens_writes_json(tmp_path):
+    token_file = tmp_path / "tokens.json"
+    save_tokens(token_file, access_token="acc", refresh_token="ref", expires_at=9999.0)
+    data = json.loads(token_file.read_text())
+    assert data["access_token"] == "acc"
+    assert data["refresh_token"] == "ref"
+    assert data["expires_at"] == 9999.0
+
+
+def test_save_tokens_sets_restricted_permissions(tmp_path):
+    token_file = tmp_path / "tokens.json"
+    save_tokens(token_file, access_token="acc", refresh_token="ref", expires_at=9999.0)
+    if sys.platform != "win32":
+        mode = stat.S_IMODE(token_file.stat().st_mode)
+        assert mode == 0o600, f"Expected 0o600, got {oct(mode)}"
+
+
+def test_load_tokens_reads_correctly(valid_token_file):
+    tokens = load_tokens(valid_token_file)
+    assert tokens["access_token"] == "test-access-token"
+    assert tokens["refresh_token"] == "test-refresh-token"
+    assert tokens["expires_at"] > time.time()
+
+
+def test_load_tokens_raises_when_file_missing(tmp_path):
+    missing = tmp_path / "no_such_file.json"
+    with pytest.raises(SchwabAuthError, match="Token file not found"):
+        load_tokens(missing)
