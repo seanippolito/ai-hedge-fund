@@ -16,7 +16,15 @@ class AccountStateResponse(BaseModel):
     orders: list[Order]
 
 
-@router.get("/account", response_model=AccountStateResponse)
+@router.get(
+    "/account",
+    response_model=AccountStateResponse,
+    responses={
+        401: {"description": "Token invalid or expired — re-run auth setup"},
+        500: {"description": "Unexpected server error"},
+        502: {"description": "Schwab upstream API error"},
+    },
+)
 def get_account() -> AccountStateResponse:
     try:
         client = SchwabClient()
@@ -37,3 +45,5 @@ def get_account() -> AccountStateResponse:
         raise HTTPException(status_code=401, detail=str(e))
     except SchwabAPIError as e:
         raise HTTPException(status_code=502, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")

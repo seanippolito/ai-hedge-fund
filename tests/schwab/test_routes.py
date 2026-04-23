@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -33,11 +32,11 @@ MOCK_POSITIONS = [
 MOCK_ORDERS: list[Order] = []
 
 
-def _patch_client(accounts=MOCK_ACCOUNTS, positions=MOCK_POSITIONS, orders=MOCK_ORDERS):
+def _patch_client(accounts=None, positions=None, orders=None):
     mock = MagicMock()
-    mock.get_accounts.return_value = accounts
-    mock.get_positions.return_value = positions
-    mock.get_orders.return_value = orders
+    mock.get_accounts.return_value = accounts if accounts is not None else MOCK_ACCOUNTS
+    mock.get_positions.return_value = positions if positions is not None else MOCK_POSITIONS
+    mock.get_orders.return_value = orders if orders is not None else MOCK_ORDERS
     return mock
 
 
