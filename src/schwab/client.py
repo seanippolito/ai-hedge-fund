@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import urllib.parse
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -94,12 +95,11 @@ class SchwabClient:
         now = datetime.now(tz=timezone.utc)
         from_dt = from_time or (now - timedelta(days=60))
         to_dt = to_time or now
-        from_str = from_dt.strftime("%Y-%m-%dT%H:%M:%S")
-        to_str = to_dt.strftime("%Y-%m-%dT%H:%M:%S")
-        data = self._get(
-            f"/accounts/{account_hash}/orders"
-            f"?fromEnteredTime={from_str}&toEnteredTime={to_str}"
-        )
+        params = urllib.parse.urlencode({
+            "fromEnteredTime": from_dt.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
+            "toEnteredTime": to_dt.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
+        })
+        data = self._get(f"/accounts/{account_hash}/orders?{params}")
         orders = []
         for o in data:
             leg = o.get("orderLegCollection", [{}])[0]

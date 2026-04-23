@@ -50,13 +50,13 @@ def main() -> None:
                 price_str = f"@ ${o.limit_price:.2f}" if o.limit_price else "(market)"
                 print(f"  {o.order_id}  {o.action} {o.quantity} {o.ticker} {price_str}  [{o.status}]")
 
-        print("\n✓ Schwab connection verified.")
+        print("\nOK Schwab connection verified.")
 
     except SchwabAuthError as e:
-        print(f"\n✗ Auth error: {e}")
+        print(f"\nFAIL Auth error: {e}")
         print("Run: poetry run python src/schwab/auth_setup.py")
     except SchwabAPIError as e:
-        print(f"\n✗ API error (status {e.status_code}): {e}")
+        print(f"\nFAIL API error (status {e.status_code}): {e}")
 
 
 if __name__ == "__main__":
