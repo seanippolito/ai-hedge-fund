@@ -1,4 +1,4 @@
-from src.schwab.exceptions import SchwabAuthError, SchwabAPIError
+from src.schwab.exceptions import SchwabAuthError, SchwabAPIError, SchwabError
 
 
 def test_schwab_auth_error_is_exception():
@@ -16,3 +16,13 @@ def test_schwab_api_error_stores_status_code():
 def test_schwab_api_error_without_status_code():
     err = SchwabAPIError("unknown error")
     assert err.status_code is None
+
+
+def test_schwab_auth_error_is_schwab_error():
+    err = SchwabAuthError("token expired")
+    assert isinstance(err, SchwabError)
+
+
+def test_schwab_api_error_is_schwab_error():
+    err = SchwabAPIError("bad gateway", status_code=502)
+    assert isinstance(err, SchwabError)
