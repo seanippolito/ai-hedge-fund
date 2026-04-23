@@ -4,7 +4,10 @@ import json
 import os
 import sys
 import tempfile
+import time
 from pathlib import Path
+
+import requests
 
 from src.schwab.exceptions import SchwabAuthError
 
@@ -50,3 +53,40 @@ def load_tokens(path: Path) -> dict:
             f"Token file at {path} is missing keys: {sorted(missing)}. Re-run auth setup."
         )
     return data
+
+
+_TOKEN_URL = "https://api.schwabapis.com/v1/oauth/token"
+
+
+def _refresh_tokens(path: Path, refresh_token: str) -> dict:
+    client_id = os.environ["SCHWAB_CLIENT_ID"]
+    client_secret = os.environ["SCHWAB_CLIENT_SECRET"]
+
+    response = requests.post(
+        _TOKEN_URL,
+        data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+        auth=(client_id, client_secret),
+        timeout=30,
+    )
+
+    if response.status_code != 200:
+        raise SchwabAuthError(f"Token refresh failed with status {response.status_code}")
+
+    data = response.json()
+    save_tokens(
+        path,
+        access_token=data["access_token"],
+        refresh_token=data["refresh_token"],
+        expires_at=time.time() + data["expires_in"],
+    )
+    return load_tokens(path)
+
+
+def get_valid_token(token_path: Path | None = None) -> str:
+    path = token_path or Path(os.environ["SCHWAB_TOKEN_PATH"])
+    tokens = load_tokens(path)
+
+    if time.time() >= tokens["expires_at"] - 60:
+        tokens = _refresh_tokens(path, tokens["refresh_token"])
+
+    return tokens["access_token"]
