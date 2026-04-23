@@ -34,6 +34,6 @@ class Order(BaseModel):
     action: str
     quantity: float
     order_type: str
-    limit_price: float | None
+    limit_price: float | None = None
     status: str
     entered_time: datetime
